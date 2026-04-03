@@ -3,6 +3,10 @@ import os
 import subprocess
 
 import httpx
+from rich.console import Console
+from rich.markdown import Markdown
+
+console = Console()
 
 
 async def fetch_articles() -> list[dict]:
@@ -42,13 +46,40 @@ def select_article(articles: list[dict]) -> dict | None:
     return None
 
 
+def open_in_browser(url: str) -> None:
+    subprocess.run(["wslview", url], check=False)
+
+
 def display_article(article: dict) -> None:
-    print(f"\nタイトル : {article['title']}")
-    print(f"著者     : {article['user']['id']}")
-    print(f"LGTM     : {article['likes_count']}")
-    print(f"URL      : {article['url']}")
-    print("\n--- 本文 ---\n")
-    print(article["body"])
+    console.print(f"\n[bold]{article['title']}[/bold]")
+    console.print(f"著者: [cyan]{article['user']['id']}[/cyan]  LGTM: [yellow]{article['likes_count']}[/yellow]  URL: {article['url']}\n")
+
+    console.print("[1] ターミナルで読む  [2] ブラウザで開く")
+    choice = input("選択> ").strip()
+
+    if choice == "2":
+        open_in_browser(article["url"])
+    else:
+        console.print(Markdown(article["body"]))
+
+
+async def poll(interval: int = 60) -> None:
+    console.print("[bold green]ポーリング開始（Ctrl+C で終了）[/bold green]\n")
+    seen_ids: set[str] = set()
+
+    while True:
+        articles = await fetch_articles()
+        new_articles = [a for a in articles if a["id"] not in seen_ids]
+
+        if new_articles:
+            console.print(f"[yellow]{len(new_articles)}件の新着記事[/yellow]")
+            for a in new_articles:
+                console.print(f"  ・{a['title']} by {a['user']['id']}")
+                seen_ids.add(a["id"])
+        else:
+            console.print("[dim]新着なし[/dim]")
+
+        await asyncio.sleep(interval)
 
 
 async def main() -> None:
@@ -63,5 +94,12 @@ async def main() -> None:
     display_article(selected)
 
 
+async def main_poll() -> None:
+    try:
+        await poll(interval=10)  # PoCなので10秒
+    except KeyboardInterrupt:
+        console.print("\n終了します。")
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main_poll())
