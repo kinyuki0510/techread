@@ -76,9 +76,11 @@ Core features:
 
 ## Commands
 
-- `uv run pytest` : run tests
-- `uv run mypy .` : type check
-- `uv run python -m techread` : run app
+- `make install` : add dependencies and generate lockfile (first time only)
+- `make sync`    : restore environment from lockfile (idempotent)
+- `make test`    : run tests
+- `make lint`    : type check
+- `make run`     : run app
 - `wslview <url>` : open URL in Windows default browser
 
 ## Do NOT
