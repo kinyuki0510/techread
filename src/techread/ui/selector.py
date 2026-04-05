@@ -11,7 +11,7 @@ def select_article(articles: list[Article], read_ids: set[str]) -> Article | Non
             user=article.user_id,
             likes=article.likes_count,
         )
-       for article in articles
+        for article in articles
     ]
     input_text = "\n".join(lines).encode()
 

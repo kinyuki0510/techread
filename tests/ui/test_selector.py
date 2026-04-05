@@ -35,7 +35,7 @@ def make_fzf_result(selected_line: str, returncode: int = 0) -> MagicMock:
     return result
 
 
-def test_select_first_article(articles):
+def test_select_first_article(articles: list[Article]) -> None:
     selected_line = "  Python入門 | user1 | LGTM:10"
     with patch("subprocess.run", return_value=make_fzf_result(selected_line)):
         selected = select_article(articles, read_ids=set())
@@ -44,7 +44,7 @@ def test_select_first_article(articles):
     assert selected.id == "id1"
 
 
-def test_select_read_article(articles):
+def test_select_read_article(articles: list[Article]) -> None:
     selected_line = "✓ asyncio解説 | user2 | LGTM:20"
     with patch("subprocess.run", return_value=make_fzf_result(selected_line)):
         selected = select_article(articles, read_ids={"id2"})
@@ -53,7 +53,7 @@ def test_select_read_article(articles):
     assert selected.id == "id2"
 
 
-def test_cancel_returns_none(articles):
+def test_cancel_returns_none(articles: list[Article]) -> None:
     with patch("subprocess.run", return_value=make_fzf_result("", returncode=130)):
         selected = select_article(articles, read_ids=set())
 

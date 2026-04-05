@@ -1,9 +1,12 @@
+from pathlib import Path
+
 import aiosqlite
 
-DB_PATH = "techread.db"
+DB_PATH: str = str(Path.home() / ".techread" / "techread.db")
 
 
 async def init_db() -> None:
+    Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute(
             """

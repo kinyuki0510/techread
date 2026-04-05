@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from types import TracebackType
+from typing import Any
 
 import httpx
 
@@ -28,18 +30,31 @@ class QiitaClient:
         await self._client.__aenter__()
         return self
 
-    async def __aexit__(self, *args: object) -> None:
-        await self._client.__aexit__(*args)
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        await self._client.__aexit__(exc_type, exc_val, exc_tb)
 
     async def fetch_articles(self, per_page: int = 20) -> list[Article]:
-        response = await self._client.get(
-            "/items",
-            params={"per_page": per_page, "page": 1},
-        )
-        response.raise_for_status()
-        return [self._parse(a) for a in response.json()]
+        params = {"per_page": per_page, "page": 1}
+        last_error: httpx.RequestError | None = None
+        for _ in range(2):
+            try:
+                response = await self._client.get("/items", params=params)
+                response.raise_for_status()
+                return [self._parse(a) for a in response.json()]
+            except httpx.HTTPStatusError as e:
+                raise RuntimeError(
+                    f"API error {e.response.status_code}: {e.response.text}"
+                ) from e
+            except httpx.RequestError as e:
+                last_error = e
+        raise RuntimeError(f"Network error: {last_error}") from last_error
 
-    def _parse(self, data: dict) -> Article:
+    def _parse(self, data: dict[str, Any]) -> Article:
         return Article(
             id=data["id"],
             title=data["title"],

@@ -1,3 +1,4 @@
+import shutil
 import subprocess
 
 from rich.console import Console
@@ -26,4 +27,10 @@ def display_article(article: Article) -> None:
 
 
 def _open_in_browser(url: str) -> None:
+    if not url.startswith("https://qiita.com/"):
+        console.print(f"[red]無効なURL: {url}[/red]")
+        return
+    if shutil.which("wslview") is None:
+        console.print(f"wslview が見つかりません。ブラウザで開いてください: {url}")
+        return
     subprocess.run(["wslview", url], check=False)

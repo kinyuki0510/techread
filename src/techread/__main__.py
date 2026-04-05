@@ -15,8 +15,12 @@ async def run() -> None:
     await init_db()
 
     token = os.environ.get("QIITA_API_TOKEN")
-    async with QiitaClient(token=token) as client:
-        articles = await client.fetch_articles()
+    try:
+        async with QiitaClient(token=token) as client:
+            articles = await client.fetch_articles()
+    except RuntimeError as e:
+        console.print(f"[red]エラー: {e}[/red]")
+        return
 
     while True:
         read_ids = await get_read_ids()
