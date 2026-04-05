@@ -2,7 +2,7 @@
 
 ## 初回セットアップ：依存関係を追加してlockファイルを生成
 install:
-	uv add httpx typer rich
+	uv add httpx typer rich aiosqlite
 	uv add --dev mypy pytest pytest-asyncio
 
 ## 環境再現：lockファイルから環境を復元（冪等）
@@ -16,4 +16,4 @@ test:
 	uv run pytest
 
 run:
-	uv run python -m techread
+	uv run techread
